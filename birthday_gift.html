@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Happy Birthday Gift!</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: #fff;
+  text-align: center;
+}
+
+h1 {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  animation: pulse 2s infinite;
+}
+
+h2 {
+  font-size: 2rem;
+  margin-top: 0;
+  font-weight: 400;
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    color: #fff;
+    text-shadow: 0 0 15px #fff, 0 0 35px #ff6f91, 0 0 55px #ff6f91;
+  }
+  50% {
+    color: #ff6f91;
+    text-shadow: 0 0 25px #fff, 0 0 45px #ff9a9e, 0 0 65px #fad0c4;
+  }
+}
+
+/* Confetti styles */
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background-color: #ff6f91;
+  opacity: 0.7;
+  border-radius: 50%;
+  pointer-events: none;
+  animation-timing-function: linear;
+}
+
+.balloon {
+  position: fixed;
+  bottom: -150px;
+  width: 80px;
+  height: 110px;
+  background: radial-gradient(circle at 40% 35%, #ff007f, #b20050);
+  border-radius: 40% 40% 50% 50% / 60% 60% 40% 40%;
+  filter: drop-shadow(1px 3px 2px rgba(0,0,0,0.2));
+  animation: floatUp linear forwards;
+  cursor: default;
+}
+.balloon::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background: #b20050;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}
+.balloon.red {
+  background: radial-gradient(circle at 40% 35%, #ff0055, #b20038);
+}
+.balloon.blue {
+  background: radial-gradient(circle at 40% 35%, #0088ff, #0056b2);
+}
+.balloon.yellow {
+  background: radial-gradient(circle at 40% 35%, #fff500, #b2a200);
+}
+.balloon.green {
+  background: radial-gradient(circle at 40% 35%, #00cc44, #0b6b22);
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) translateX(0) rotate(0deg);}
+  100% { transform: translateY(-120vh) translateX(20px) rotate(360deg);}
+}
+
+</style>
+</head>
+<body>
+
+<h1>🎉 Happy Birthday! 🎉</h1>
+<h2>Wishing you a day filled with love, joy, and lots of cake!</h2>
+
+<script>
+// Confetti generation
+const confettiColors = ['#ff6f91', '#ff9671', '#ffc75f', '#955251', '#4f6457'];
+
+function createConfettiPiece() {
+  const confetti = document.createElement('div');
+  confetti.classList.add('confetti');
+  confetti.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+  confetti.style.left = Math.random() * window.innerWidth + 'px';
+  confetti.style.top = Math.random() * window.innerHeight + 'px';
+  confetti.style.width = confetti.style.height = (5 + Math.random() * 10) + 'px';
+  confetti.style.opacity = Math.random() * 0.7 + 0.3;
+  confetti.style.animationDuration = (3 + Math.random() * 3) + 's';
+  confetti.style.animationName = 'fallConfetti';
+
+  document.body.appendChild(confetti);
+
+  setTimeout(() => {
+    confetti.remove();
+  }, 6000);
+}
+
+// Confetti fall animation using JS since CSS keyframes for that are not defined yet
+// Implement fallConfetti keyframes programmatically
+const styleSheet = document.createElement('style');
+styleSheet.type = 'text/css';
+styleSheet.innerText = `
+@keyframes fallConfetti {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1;}
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0;}
+}
+`;
+document.head.appendChild(styleSheet);
+
+// Generate confetti every 200ms
+setInterval(createConfettiPiece, 200);
+
+// Balloon generation
+const balloonColors = ['red', 'blue', 'yellow', 'green'];
+
+function createBalloon() {
+  const balloon = document.createElement('div');
+  balloon.classList.add('balloon');
+  const color = balloonColors[Math.floor(Math.random() * balloonColors.length)];
+  balloon.classList.add(color);
+  
+  balloon.style.left = Math.random() * (window.innerWidth - 80) + 'px';
+  balloon.style.animationDuration = (8 + Math.random() * 7) + 's';
+  balloon.style.animationTimingFunction = 'ease-in-out';
+  
+  document.body.appendChild(balloon);
+  
+  // Remove balloon after animation ends
+  balloon.addEventListener('animationend', () => {
+    balloon.remove();
+  });
+}
+
+// Create balloons at random intervals
+setInterval(createBalloon, 1500);
+
+</script>
+
+</body>
+</html>
+

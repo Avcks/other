@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multiuser Messenger App</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #app {
+    width: 100%;
+    max-width: 480px;
+    height: 80vh;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Login Screen */
+  #loginScreen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2em;
+    background: #f5f6fa;
+    border-radius: 12px;
+  }
+  #loginScreen h2 {
+    margin: 0 0 1em 0;
+    color: #333;
+    font-weight: 600;
+    font-size: 1.7rem;
+    text-align: center;
+  }
+  #loginScreen input {
+    width: 100%;
+    padding: 0.75em 1em;
+    font-size: 1.1rem;
+    border: 2px solid #6c63ff;
+    border-radius: 30px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  #loginScreen input:focus {
+    border-color: #5248c4;
+  }
+  #loginScreen button {
+    margin-top: 1em;
+    padding: 0.75em;
+    width: 100%;
+    border-radius: 30px;
+    border: none;
+    background: #6c63ff;
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  #loginScreen button:disabled {
+    background-color: #b0aaff;
+    cursor: not-allowed;
+  }
+  #loginScreen button:hover:not(:disabled) {
+    background-color: #5248c4;
+  }
+
+  /* Chat Screen */
+  #chatScreen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background-color: #6c63ff;
+    color: white;
+    padding: 1em;
+    font-weight: 600;
+    font-size: 1.25rem;
+    text-align: center;
+    user-select: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header .username {
+    font-size: 1rem;
+    opacity: 0.85;
+  }
+  header button.logout-button {
+    background: rgba(255 255 255 / 0.25);
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 0.3em 1em;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+  }
+  header button.logout-button:hover {
+    background: rgba(255 255 255 / 0.4);
+  }
+  main {
+    flex: 1;
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: #f5f6fa;
+  }
+  .message {
+    max-width: 75%;
+    margin-bottom: 1em;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    user-select: text;
+    word-wrap: break-word;
+  }
+  .message .sender {
+    font-weight: 600;
+    margin-bottom: 0.15em;
+    font-size: 0.85rem;
+  }
+  .message .text {
+    padding: 0.7em 1em;
+    border-radius: 20px;
+    white-space: pre-wrap;
+  }
+  .message.user {
+    align-self: flex-end;
+    text-align: right;
+  }
+  .message.user .text {
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  .message.other {
+    align-self: flex-start;
+    text-align: left;
+  }
+  .timestamp {
+    margin-top: 0.15em;
+    font-size: 0.65rem;
+    color: #999;
+    user-select: none;
+  }
+  footer {
+    background: #eee;
+    padding: 0.75em;
+    display: flex;
+    gap: 0.75em;
+  }
+  textarea {
+    flex: 1;
+    resize: none;
+    border: none;
+    border-radius: 20px;
+    padding: 0.75em 1em;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+    max-height: 100px;
+  }
+  button.send-button {
+    background-color: #6c63ff;
+    border: none;
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-radius: 20px;
+    padding: 0 1.2em;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(108, 99, 255, 0.4);
+    transition: background-color 0.2s ease;
+    user-select: none;
+  }
+  button.send-button:disabled {
+    background-color: #b0aaff;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  button.send-button:hover:not(:disabled) {
+    background-color: #5248c4;
+  }
+
+  /* Scrollbar styling */
+  main::-webkit-scrollbar {
+    width: 8px;
+  }
+  main::-webkit-scrollbar-track {
+    background: #f5f6fa;
+  }
+  main::-webkit-scrollbar-thumb {
+    background-color: #6c63ff;
+    border-radius: 20px;
+  }
+
+  /* Dynamic bubble backgrounds */
+  .message.user {
+    background: none;
+  }
+  /* The message bubble text background will be colored by JS */
+
+  @media (max-width: 520px) {
+    #app {
+      height: 90vh;
+      width: 100%;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    header {
+      font-size: 1.1rem;
+      padding: 0.75em;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="app" role="main" aria-label="Multiuser Messenger App">
+
+    <!-- Login Screen -->
+    <section id="loginScreen" aria-label="User Login">
+      <h2>Enter your username</h2>
+      <input type="text" id="usernameInput" placeholder="Your username" aria-required="true" aria-describedby="usernameHelp" autocomplete="off" />
+      <button id="loginButton" disabled>Join Chat</button>
+    </section>
+
+    <!-- Chat Screen -->
+    <section id="chatScreen" hidden>
+      <header>
+        <div>Chatting as <span class="username" id="currentUsername"></span></div>
+        <button class="logout-button" aria-label="Logout and change user" id="logoutButton">Logout</button>
+      </header>
+      <main id="messages" aria-live="polite" aria-relevant="additions"></main>
+      <footer>
+        <textarea id="inputMessage" aria-label="Type your message" rows="1" placeholder="Type a message..."></textarea>
+        <button class="send-button" id="sendButton" aria-label="Send message" disabled>➤</button>
+      </footer>
+    </section>
+  </div>
+
+  <script>
+    (function(){
+      const loginScreen = document.getElementById('loginScreen');
+      const chatScreen = document.getElementById('chatScreen');
+
+      const usernameInput = document.getElementById('usernameInput');
+      const loginButton = document.getElementById('loginButton');
+      const logoutButton = document.getElementById('logoutButton');
+
+      const currentUsernameEl = document.getElementById('currentUsername');
+      const messagesEl = document.getElementById('messages');
+      const inputEl = document.getElementById('inputMessage');
+      const sendBtn = document.getElementById('sendButton');
+
+      // Load username from localStorage or null
+      let currentUser = localStorage.getItem('multiuserMessengerUsername') || null;
+      // Load messages array from localStorage or empty
+      let messages = JSON.parse(localStorage.getItem('multiuserMessengerMessages') || '[]');
+
+      // Enable login button if username input not empty and valid
+      function validateUsername(username) {
+        return username.trim().length >= 1 && username.trim().length <= 20;
+      }
+      usernameInput.addEventListener('input', () => {
+        const valid = validateUsername(usernameInput.value);
+        loginButton.disabled = !valid;
+      });
+
+      // Save username and show chat screen
+      function login(username) {
+        username = username.trim();
+        localStorage.setItem('multiuserMessengerUsername', username);
+        currentUser = username;
+        showChatScreen();
+      }
+
+      // Clear username and show login screen
+      function logout() {
+        localStorage.removeItem('multiuserMessengerUsername');
+        currentUser = null;
+        showLoginScreen();
+      }
+
+      function showLoginScreen() {
+        loginScreen.hidden = false;
+        chatScreen.hidden = true;
+        usernameInput.value = '';
+        loginButton.disabled = true;
+        usernameInput.focus();
+      }
+
+      function showChatScreen() {
+        loginScreen.hidden = true;
+        chatScreen.hidden = false;
+        currentUsernameEl.textContent = currentUser;
+        renderMessages();
+        inputEl.value = '';
+        sendBtn.disabled = true;
+        inputEl.focus();
+      }
+
+      // Utility to format time HH:mm
+      function formatTime(date) {
+        return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      }
+
+      // Generate consistent background color string from username string
+      function stringToColor(str) {
+        let hash = 0;
+        for(let i=0; i < str.length; i++) {
+          hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const hue = Math.abs(hash) % 360;
+        return `hsl(${hue}, 70%, 80%)`;
+      }
+      // Generate a text color based on background for contrast
+      function getTextColor(bgColor) {
+        const c = bgColor.match(/\d+/g);
+        const l = Number(c[2]); // lightness
+        return l < 50 ? 'white' : 'black';
+      }
+
+      // Render all messages
+      function renderMessages() {
+        messagesEl.innerHTML = '';
+        messages.forEach(msg => {
+          const messageDiv = document.createElement('div');
+          const isUser = msg.sender === currentUser;
+          messageDiv.classList.add('message', isUser ? 'user' : 'other');
+
+          const senderDiv = document.createElement('div');
+          senderDiv.className = 'sender';
+          senderDiv.textContent = msg.sender;
+          messageDiv.appendChild(senderDiv);
+
+          const textDiv = document.createElement('div');
+          textDiv.className = 'text';
+          textDiv.textContent = msg.text;
+
+          // Color bubble background based on sender
+          const bgColor = stringToColor(msg.sender);
+          textDiv.style.backgroundColor = bgColor;
+          textDiv.style.color = getTextColor(bgColor);
+
+          if(isUser){
+            // user messages aligned right
+            messageDiv.style.alignSelf = 'flex-end';
+            senderDiv.style.textAlign = 'right';
+          } else {
+            messageDiv.style.alignSelf = 'flex-start';
+            senderDiv.style.textAlign = 'left';
+          }
+
+          messageDiv.appendChild(textDiv);
+
+          const timestampDiv = document.createElement('div');
+          timestampDiv.className = 'timestamp';
+          timestampDiv.textContent = formatTime(new Date(msg.timestamp));
+          messageDiv.appendChild(timestampDiv);
+
+          messagesEl.appendChild(messageDiv);
+        });
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      // Save messages to localStorage
+      function saveMessages() {
+        localStorage.setItem('multiuserMessengerMessages', JSON.stringify(messages));
+      }
+
+      // Send message handler
+      function sendMessage() {
+        const text = inputEl.value.trim();
+        if(text === '') return;
+        const newMsg = {
+          sender: currentUser,
+          text,
+          timestamp: new Date().toISOString()
+        };
+        messages.push(newMsg);
+        saveMessages();
+        renderMessages();
+        inputEl.value = '';
+        sendBtn.disabled = true;
+        inputEl.style.height = 'auto';
+        inputEl.focus();
+      }
+
+      // Enable/disable send button based on input
+      inputEl.addEventListener('input', () => {
+        sendBtn.disabled = inputEl.value.trim() === '';
+        // auto grow
+        inputEl.style.height = 'auto';
+        inputEl.style.height = (inputEl.scrollHeight) + 'px';
+      });
+
+      // Handle Enter key for send (Shift+Enter new line)
+      inputEl.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' && !e.shiftKey){
+          e.preventDefault();
+          if(!sendBtn.disabled){
+            sendMessage();
+          }
+        }
+      });
+
+      sendBtn.addEventListener('click', sendMessage);
+      loginButton.addEventListener('click', () => login(usernameInput.value));
+      logoutButton.addEventListener('click', () => logout());
+
+      // Initialize app
+      if(currentUser) {
+        showChatScreen();
+      } else {
+        showLoginScreen();
+      }
+
+      // For live multi-tab updates, listen on storage event
+      window.addEventListener('storage', (e) => {
+        if(e.key === 'multiuserMessengerMessages') {
+          messages = JSON.parse(e.newValue || '[]');
+          if(!loginScreen.hidden){
+            // ignore updates if logged out
+            return;
+          }
+          renderMessages();
+        } else if(e.key === 'multiuserMessengerUsername'){
+          const newUser = e.newValue;
+          if(!newUser){ // logged out from another tab
+            showLoginScreen();
+          }
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>
+

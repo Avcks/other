@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Offline Store Stock Manager</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: #4a90e2;
+    color: white;
+    padding: 1rem 2rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.8rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  }
+  main {
+    flex-grow: 1;
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .page {
+    display: none;
+  }
+  .active {
+    display: block;
+  }
+  .dashboard-cards {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    flex: 1 1 300px;
+    padding: 2rem;
+    text-align: center;
+  }
+  .card h2 {
+    font-size: 3rem;
+    margin: 0;
+    color: #4a90e2;
+    font-weight: 700;
+  }
+  .card p {
+    margin: 0.5rem 0 0;
+    font-size: 1.2rem;
+    color: #777;
+  }
+  .btn-group {
+    text-align: center;
+    margin-top: 1.5rem;
+  }
+  button {
+    background: #4a90e2;
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.8rem 1.6rem;
+    margin: 0 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #357abd;
+  }
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .stock-list {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .stock-list table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+  }
+  .stock-list th, .stock-list td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+  }
+  .stock-list th {
+    background: #eef4fd;
+    font-weight: 600;
+  }
+  .stock-list td.actions {
+    text-align: center;
+  }
+  .stock-list input[type="number"] {
+    width: 80px;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .add-stock-form {
+    max-width: 600px;
+    margin: 1rem auto 0;
+    background: white;
+    border-radius: 12px;
+    padding: 1rem 2rem 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .add-stock-form h3 {
+    margin-top: 0;
+    font-weight: 600;
+    color: #4a90e2;
+  }
+  .add-stock-form label {
+    display: block;
+    margin: 1rem 0 0.3rem;
+    font-weight: 600;
+  }
+  .add-stock-form input[type="text"],
+  .add-stock-form input[type="number"] {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  .add-stock-form button {
+    margin-top: 1.5rem;
+    width: 100%;
+  }
+  .transfer-input {
+    width: 70px;
+  }
+  .footer {
+    text-align: center;
+    padding: 1rem;
+    background: #4a90e2;
+    color: white;
+    font-weight: 600;
+  }
+  @media (max-width: 600px) {
+    .dashboard-cards {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+  }
+</style>
+</head>
+<body>
+<header>Offline Store Stock Manager</header>
+<main>
+  <!-- Dashboard page -->
+  <section id="dashboardPage" class="page active" aria-label="Dashboard">
+    <div class="dashboard-cards">
+      <div class="card" id="godownStockCard">
+        <h2 id="godownStockTotal">0</h2>
+        <p>Total Stock in Godown</p>
+      </div>
+      <div class="card" id="mainstoreStockCard">
+        <h2 id="mainstoreStockTotal">0</h2>
+        <p>Total Stock in Main Store</p>
+      </div>
+    </div>
+    <div class="btn-group">
+      <button id="toMainstoreBtn" title="Go to Main Store Stock Manager">Main Store Stock Manager</button>
+      <button id="toGodownBtn" title="Go to Godown Stock Manager">Godown Stock Manager</button>
+    </div>
+  </section>
+
+  <!-- Main Store Stock Manager -->
+  <section id="mainstorePage" class="page" aria-label="Main Store Stock Manager">
+    <h2>Main Store Stock Manager</h2>
+    <div class="stock-list">
+      <table aria-describedby="mainstoreStockDesc">
+        <caption id="mainstoreStockDesc" class="sr-only">Main store stock list</caption>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="mainstoreStockTable"></tbody>
+      </table>
+    </div>
+    <form id="mainstoreAddForm" class="add-stock-form" aria-label="Add stock to main store">
+      <h3>Add or Update Main Store Stock</h3>
+      <label for="mainstoreProductInput">Product Name</label>
+      <input type="text" id="mainstoreProductInput" required placeholder="Enter product name" autocomplete="off" />
+      <label for="mainstoreQuantityInput">Quantity</label>
+      <input type="number" id="mainstoreQuantityInput" required min="1" step="1" />
+      <button type="submit">Add / Update Stock</button>
+    </form>
+    <div class="btn-group" style="margin-top: 2rem;">
+      <button id="backToDashboardFromMainstore">Back to Dashboard</button>
+    </div>
+  </section>
+
+  <!-- Godown Stock Manager -->
+  <section id="godownPage" class="page" aria-label="Godown Stock Manager">
+    <h2>Godown Stock Manager</h2>
+    <div class="stock-list">
+      <table aria-describedby="godownStockDesc">
+        <caption id="godownStockDesc" class="sr-only">Godown stock list</caption>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Transfer to Main Store</th>
+          </tr>
+        </thead>
+        <tbody id="godownStockTable"></tbody>
+      </table>
+    </div>
+    <form id="godownAddForm" class="add-stock-form" aria-label="Add stock to godown">
+      <h3>Add or Update Godown Stock</h3>
+      <label for="godownProductInput">Product Name</label>
+      <input type="text" id="godownProductInput" required placeholder="Enter product name" autocomplete="off" />
+      <label for="godownQuantityInput">Quantity</label>
+      <input type="number" id="godownQuantityInput" required min="1" step="1" />
+      <button type="submit">Add / Update Stock</button>
+    </form>
+    <div class="btn-group" style="margin-top: 2rem;">
+      <button id="backToDashboardFromGodown">Back to Dashboard</button>
+    </div>
+  </section>
+</main>
+<footer class="footer">Offline Store Stock Manager &copy; 2024</footer>
+
+<script>
+  (() => {
+    // Initialize or get stock objects from localStorage
+    const STORAGE_KEYS = {
+      mainstore: 'store_mainstore_stock',
+      godown: 'store_godown_stock'
+    };
+
+    // Load stocks from localStorage or initialize empty
+    function loadStock(key) {
+      const json = localStorage.getItem(key);
+      return json ? JSON.parse(json) : {};
+    }
+    function saveStock(key, obj) {
+      localStorage.setItem(key, JSON.stringify(obj));
+    }
+
+    let mainstoreStock = loadStock(STORAGE_KEYS.mainstore);
+    let godownStock = loadStock(STORAGE_KEYS.godown);
+
+    // Utility to get total quantity in stock object
+    function totalQuantity(stockObj) {
+      return Object.values(stockObj).reduce((acc, q) => acc + q, 0);
+    }
+
+    // Format product display
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[m]);
+    }
+
+    // Elements refs
+    const dashboardPage = document.getElementById('dashboardPage');
+    const mainstorePage = document.getElementById('mainstorePage');
+    const godownPage = document.getElementById('godownPage');
+
+    const godownStockTotalEl = document.getElementById('godownStockTotal');
+    const mainstoreStockTotalEl = document.getElementById('mainstoreStockTotal');
+
+    const toMainstoreBtn = document.getElementById('toMainstoreBtn');
+    const toGodownBtn = document.getElementById('toGodownBtn');
+
+    const backToDashboardFromMainstore = document.getElementById('backToDashboardFromMainstore');
+    const backToDashboardFromGodown = document.getElementById('backToDashboardFromGodown');
+
+    // Mainstore elements and form
+    const mainstoreStockTable = document.getElementById('mainstoreStockTable');
+    const mainstoreAddForm = document.getElementById('mainstoreAddForm');
+    const mainstoreProductInput = document.getElementById('mainstoreProductInput');
+    const mainstoreQuantityInput = document.getElementById('mainstoreQuantityInput');
+
+    // Godown elements and form
+    const godownStockTable = document.getElementById('godownStockTable');
+    const godownAddForm = document.getElementById('godownAddForm');
+    const godownProductInput = document.getElementById('godownProductInput');
+    const godownQuantityInput = document.getElementById('godownQuantityInput');
+
+    // Show only the requested page
+    function showPage(page) {
+      [dashboardPage, mainstorePage, godownPage].forEach(p => p.classList.remove('active'));
+      page.classList.add('active');
+    }
+
+    // Update dashboard totals
+    function updateDashboardTotals() {
+      godownStockTotalEl.textContent = totalQuantity(godownStock);
+      mainstoreStockTotalEl.textContent = totalQuantity(mainstoreStock);
+    }
+
+    // Render stock table - generic to reuse
+    function renderStockTable(container, stockObj, options = {}) {
+      container.innerHTML = '';
+      const keys = Object.keys(stockObj).sort((a,b) => a.localeCompare(b));
+      if (keys.length === 0) {
+        container.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#777;">No products in stock.</td></tr>';
+        return;
+      }
+      keys.forEach(product => {
+        const qty = stockObj[product];
+
+        const tr = document.createElement('tr');
+
+        // Product name
+        const tdProduct = document.createElement('td');
+        tdProduct.textContent = product;
+        tr.appendChild(tdProduct);
+
+        // Quantity
+        const tdQuantity = document.createElement('td');
+        tdQuantity.textContent = qty;
+        tr.appendChild(tdQuantity);
+
+        // Actions
+        const tdActions = document.createElement('td');
+        tdActions.className = 'actions';
+
+        if (options.type === 'mainstore') {
+          // Actions: remove one, remove all buttons
+          const removeOneBtn = document.createElement('button');
+          removeOneBtn.textContent = '-1';
+          removeOneBtn.title = `Remove 1 unit of ${product}`;
+          removeOneBtn.style.marginRight = '0.5rem';
+          removeOneBtn.onclick = () => {
+            if (stockObj[product] > 1) {
+              stockObj[product] -= 1;
+            } else {
+              delete stockObj[product];
+            }
+            saveStock(STORAGE_KEYS.mainstore, stockObj);
+            mainstoreStock = stockObj;
+            updateDashboardTotals();
+            renderMainstoreStock();
+          };
+          tdActions.appendChild(removeOneBtn);
+
+          const removeAllBtn = document.createElement('button');
+          removeAllBtn.textContent = 'Remove All';
+          removeAllBtn.title = `Remove all units of ${product}`;
+          removeAllBtn.onclick = () => {
+            delete stockObj[product];
+            saveStock(STORAGE_KEYS.mainstore, stockObj);
+            mainstoreStock = stockObj;
+            updateDashboardTotals();
+            renderMainstoreStock();
+          };
+          tdActions.appendChild(removeAllBtn);
+
+        } else if (options.type === 'godown') {
+          // Actions: Transfer input and button to move quantity to main store
+          const transferInput = document.createElement('input');
+          transferInput.type = 'number';
+          transferInput.min = '1';
+          transferInput.max = qty.toString();
+          transferInput.value = '1';
+          transferInput.className = 'transfer-input';
+          transferInput.title = `Amount to transfer of ${product}`;
+
+          const transferBtn = document.createElement('button');
+          transferBtn.textContent = 'Transfer';
+          transferBtn.title = `Transfer to Main Store: ${product}`;
+          transferBtn.style.marginLeft = '0.5rem';
+
+          transferBtn.onclick = () => {
+            let transferAmount = parseInt(transferInput.value);
+            if (isNaN(transferAmount) || transferAmount < 1) {
+              alert('Please enter a valid positive quantity to transfer.');
+              return;
+            }
+            if (transferAmount > qty) {
+              alert(`Cannot transfer more than available stock (${qty}).`);
+              return;
+            }
+            // Deduct from godown, add to mainstore
+            stockObj[product] -= transferAmount;
+            if (stockObj[product] === 0) {
+              delete stockObj[product];
+            }
+            // Update mainstore
+            if (mainstoreStock[product]) {
+              mainstoreStock[product] += transferAmount;
+            } else {
+              mainstoreStock[product] = transferAmount;
+            }
+            saveStock(STORAGE_KEYS.godown, stockObj);
+            saveStock(STORAGE_KEYS.mainstore, mainstoreStock);
+            godownStock = stockObj;
+            updateDashboardTotals();
+            renderGodownStock();
+            renderMainstoreStock();
+          };
+
+          tdActions.appendChild(transferInput);
+          tdActions.appendChild(transferBtn);
+        } else {
+          tdActions.textContent = '-'; // default no actions
+        }
+
+        tr.appendChild(tdActions);
+
+        container.appendChild(tr);
+      });
+    }
+
+    // Render mainstore stock table
+    function renderMainstoreStock() {
+      renderStockTable(mainstoreStockTable, mainstoreStock, {type: 'mainstore'});
+    }
+
+    // Render godown stock table
+    function renderGodownStock() {
+      renderStockTable(godownStockTable, godownStock, {type: 'godown'});
+    }
+
+    // Handler for mainstore add form submit
+    mainstoreAddForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const product = mainstoreProductInput.value.trim();
+      const qty = parseInt(mainstoreQuantityInput.value, 10);
+
+      if (!product || isNaN(qty) || qty <= 0) {
+        alert('Please enter valid product name and quantity.');
+        return;
+      }
+      if (mainstoreStock[product]) {
+        mainstoreStock[product] += qty;
+      } else {
+        mainstoreStock[product] = qty;
+      }
+
+      saveStock(STORAGE_KEYS.mainstore, mainstoreStock);
+      mainstoreAddForm.reset();
+      updateDashboardTotals();
+      renderMainstoreStock();
+    });
+
+    // Handler for godown add form submit
+    godownAddForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const product = godownProductInput.value.trim();
+      const qty = parseInt(godownQuantityInput.value, 10);
+
+      if (!product || isNaN(qty) || qty <= 0) {
+        alert('Please enter valid product name and quantity.');
+        return;
+      }
+      if (godownStock[product]) {
+        godownStock[product] += qty;
+      } else {
+        godownStock[product] = qty;
+      }
+
+      saveStock(STORAGE_KEYS.godown, godownStock);
+      godownAddForm.reset();
+      updateDashboardTotals();
+      renderGodownStock();
+    });
+
+    // Navigation buttons
+    toMainstoreBtn.addEventListener('click', () => {
+      showPage(mainstorePage);
+      renderMainstoreStock();
+    });
+    toGodownBtn.addEventListener('click', () => {
+      showPage(godownPage);
+      renderGodownStock();
+    });
+    backToDashboardFromMainstore.addEventListener('click', () => {
+      showPage(dashboardPage);
+      updateDashboardTotals();
+    });
+    backToDashboardFromGodown.addEventListener('click', () => {
+      showPage(dashboardPage);
+      updateDashboardTotals();
+    });
+
+    // Initial render dashboard totals
+    updateDashboardTotals();
+
+  })();
+</script>
+
+</body>
+</html>
+

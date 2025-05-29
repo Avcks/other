@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Offline Store Stock Manager</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0; padding: 0;
+    background: #f4f7ff;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  header {
+    background: #3f51b5;
+    color: white;
+    padding: 1rem 2rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.8rem;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
+  }
+
+  nav {
+    background: #283593;
+    display: flex;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  nav button {
+    flex: 1;
+    padding: 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    background: #283593;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  nav button:hover {
+    background-color: #3949ab;
+  }
+  nav button.active {
+    background-color: #1a237e;
+  }
+
+  main {
+    flex-grow: 1;
+    padding: 1.5rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  h2 {
+    margin-bottom: 1rem;
+    color: #3f51b5;
+  }
+  form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 3px 14px rgb(63 81 181 / 0.23);
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+  }
+  input[type="text"], input[type="number"] {
+    margin-top: 6px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1.8px solid #ddd;
+    transition: border-color 0.3s ease;
+    font-size: 1rem;
+  }
+  input[type="text"]:focus, input[type="number"]:focus {
+    outline: none;
+    border-color: #3f51b5;
+  }
+  button.primary {
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    align-self: center;
+    justify-self: start;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 4px 8px rgb(63 81 181 / 0.35);
+  }
+  button.primary:hover {
+    background-color: #303f9f;
+  }
+  button.secondary {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    box-shadow: none;
+    cursor: pointer;
+  }
+  button.secondary:hover {
+    background-color: #d32f2f;
+  }
+  .search-container {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .search-container input {
+    padding: 8px 12px;
+    width: 250px;
+    border-radius: 6px;
+    border: 1.5px solid #ddd;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  .search-container input:focus {
+    border-color: #3f51b5;
+    outline: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.08);
+    overflow: hidden;
+  }
+  thead {
+    background-color: #3f51b5;
+    color: white;
+  }
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #ddd;
+  }
+  tbody tr:hover {
+    background-color: #f1f4ff;
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+  .update-quantity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .update-quantity input[type="number"] {
+    width: 70px;
+    padding: 5px 8px;
+  }
+  .total-value {
+    margin-top: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #3f51b5;
+    text-align: right;
+  }
+
+  footer {
+    background: #3f51b5;
+    color: white;
+    text-align: center;
+    padding: 1rem 2rem;
+    margin-top: auto;
+  }
+  @media(max-width: 600px) {
+    form {
+      grid-template-columns: 1fr;
+    }
+    .search-container {
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .search-container input {
+      width: 100%;
+      max-width: 100%;
+    }
+    .total-value {
+      text-align: center;
+    }
+    nav button {
+      font-size: 0.9rem;
+      padding: 10px 0;
+    }
+  }
+  /* Hide pages by default */
+  section.page {
+    display: none;
+  }
+  section.page.active {
+    display: block;
+  }
+</style>
+</head>
+<body>
+<header>Offline Store Stock Manager</header>
+<nav role="navigation" aria-label="Primary navigation">
+  <button id="navMainStore" class="active" aria-current="page" aria-controls="mainStorePage">Main Store</button>
+  <button id="navGodownStock" aria-controls="godownStockPage">Godown Stock</button>
+</nav>
+<main>
+  <!-- Main Store Page -->
+  <section id="mainStorePage" class="page active" aria-label="Main Store stock management page">
+    <section aria-label="Add or update product in godown">
+      <h2>Add / Update Product</h2>
+      <form id="productForm" aria-describedby="productFormDesc">
+        <p id="productFormDesc" style="display:none;">Add or update product in godown stock. Initial main store stock is zero.</p>
+        <label for="productName">Product Name
+          <input type="text" id="productName" name="productName" placeholder="Enter product name" required autocomplete="off"/>
+        </label>
+        <label for="productSKU">SKU / ID
+          <input type="text" id="productSKU" name="productSKU" placeholder="Unique ID or SKU" required autocomplete="off"/>
+        </label>
+        <label for="productGodownQuantity">Godown Quantity
+          <input type="number" id="productGodownQuantity" name="productGodownQuantity" min="0" step="1" value="0" required />
+        </label>
+        <label for="productPrice">Price per unit ($)
+          <input type="number" id="productPrice" name="productPrice" min="0" step="0.01" value="0.00" required />
+        </label>
+        <button type="submit" class="primary">Add / Update Product</button>
+      </form>
+    </section>
+
+    <section aria-label="Search products in godown and main store">
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search products by name or SKU..." aria-label="Search products" autocomplete="off" />
+      </div>
+    </section>
+
+    <section aria-label="Main Store stock inventory list">
+      <h2>Main Store Stock Inventory</h2>
+      <table id="mainStoreTable" tabindex="0" aria-describedby="mainStoreTotalValue">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>SKU / ID</th>
+            <th>Godown Qty</th>
+            <th>Main Store Qty</th>
+            <th>Price ($)</th>
+            <th>Total Value ($)</th>
+            <th>Transfer Qty<br>(Godown→Main Store)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Products will be populated here -->
+        </tbody>
+      </table>
+      <div id="mainStoreTotalValue" class="total-value" aria-live="polite" aria-atomic="true">
+        Total Main Store Inventory Value: $0.00
+      </div>
+    </section>
+  </section>
+
+  <!-- Godown Stock Page -->
+  <section id="godownStockPage" class="page" aria-label="Godown stock summary page">
+    <h2>Godown Stock Summary</h2>
+    <section aria-label="Search products in godown">
+      <div class="search-container">
+        <input type="text" id="godownSearchInput" placeholder="Search products in godown by name or SKU..." aria-label="Search godown products" autocomplete="off" />
+      </div>
+    </section>
+    <section aria-label="Godown stock inventory list">
+      <table id="godownStockTable" tabindex="0" aria-describedby="godownTotalValue">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>SKU / ID</th>
+            <th>Godown Qty</th>
+            <th>Price ($)</th>
+            <th>Total Value ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Godown products populated here -->
+        </tbody>
+      </table>
+      <div id="godownTotalValue" class="total-value" aria-live="polite" aria-atomic="true">
+        Total Godown Inventory Value: $0.00
+      </div>
+    </section>
+  </section>
+</main>
+<footer>© 2024 Offline Store Stock Manager</footer>
+
+<script>
+  const STORAGE_KEY = 'offlineStockManagerProducts';
+
+  // DOM elements
+  const navMainStore = document.getElementById('navMainStore');
+  const navGodownStock = document.getElementById('navGodownStock');
+
+  const mainStorePage = document.getElementById('mainStorePage');
+  const godownStockPage = document.getElementById('godownStockPage');
+
+  // Main Store page elements
+  const productForm = document.getElementById('productForm');
+  const productNameInput = document.getElementById('productName');
+  const productSKUInput = document.getElementById('productSKU');
+  const productGodownQuantityInput = document.getElementById('productGodownQuantity');
+  const productPriceInput = document.getElementById('productPrice');
+  const searchInput = document.getElementById('searchInput');
+  const mainStoreTableBody = document.querySelector('#mainStoreTable tbody');
+  const mainStoreTotalValue = document.getElementById('mainStoreTotalValue');
+
+  // Godown Stock page elements
+  const godownSearchInput = document.getElementById('godownSearchInput');
+  const godownStockTableBody = document.querySelector('#godownStockTable tbody');
+  const godownTotalValue = document.getElementById('godownTotalValue');
+
+  // Product data array
+  // Product has: name, sku, price, godownQty, mainStoreQty
+  let products = [];
+
+  // Load from localStorage
+  function loadProducts() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        products = JSON.parse(stored);
+      } catch {
+        products = [];
+      }
+    } else {
+      products = [];
+    }
+  }
+
+  // Save to localStorage
+  function saveProducts() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+  }
+
+  // Format number as currency 2 decimals
+  function formatCurrency(num) {
+    return num.toFixed(2);
+  }
+
+  // Navigation handler
+  function switchPage(page) {
+    if (page === 'main') {
+      mainStorePage.classList.add('active');
+      godownStockPage.classList.remove('active');
+      navMainStore.classList.add('active');
+      navMainStore.setAttribute('aria-current', 'page');
+      navGodownStock.classList.remove('active');
+      navGodownStock.removeAttribute('aria-current');
+    } else if (page === 'godown') {
+      godownStockPage.classList.add('active');
+      mainStorePage.classList.remove('active');
+      navGodownStock.classList.add('active');
+      navGodownStock.setAttribute('aria-current', 'page');
+      navMainStore.classList.remove('active');
+      navMainStore.removeAttribute('aria-current');
+    }
+  }
+
+  navMainStore.addEventListener('click', () => {
+    switchPage('main');
+  });
+  navGodownStock.addEventListener('click', () => {
+    switchPage('godown');
+  });
+
+  // Calculate total value for given list of products and quantity field to use
+  function calculateTotalValue(list, quantityField) {
+    return list.reduce((sum, p) => sum + (p[quantityField] * p.price), 0);
+  }
+
+  // Render Main Store page table filtered by search text
+  function renderMainStoreTable(filterText = '') {
+    mainStoreTableBody.innerHTML = '';
+    const filterLower = filterText.toLowerCase();
+
+    const filteredProducts = products.filter(p =>
+      p.name.toLowerCase().includes(filterLower) ||
+      p.sku.toLowerCase().includes(filterLower)
+    );
+
+    if (filteredProducts.length === 0) {
+      const emptyRow = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 8;
+      td.style.textAlign = 'center';
+      td.textContent = 'No products found.';
+      emptyRow.appendChild(td);
+      mainStoreTableBody.appendChild(emptyRow);
+    } else {
+      filteredProducts.forEach(product => {
+        const tr = document.createElement('tr');
+
+        // Name
+        const nameTd = document.createElement('td');
+        nameTd.textContent = product.name;
+        tr.appendChild(nameTd);
+
+        // SKU
+        const skuTd = document.createElement('td');
+        skuTd.textContent = product.sku;
+        tr.appendChild(skuTd);
+
+        // Godown Qty
+        const godownQtyTd = document.createElement('td');
+        godownQtyTd.textContent = product.godownQty;
+        tr.appendChild(godownQtyTd);
+
+        // Main Store Qty
+        const mainStoreQtyTd = document.createElement('td');
+        mainStoreQtyTd.textContent = product.mainStoreQty;
+        tr.appendChild(mainStoreQtyTd);
+
+        // Price
+        const priceTd = document.createElement('td');
+        priceTd.textContent = formatCurrency(product.price);
+        tr.appendChild(priceTd);
+
+        // Total Value = mainStoreQty * price
+        const totalValTd = document.createElement('td');
+        totalValTd.textContent = formatCurrency(product.mainStoreQty * product.price);
+        tr.appendChild(totalValTd);
+
+        // Transfer Qty controls
+        const transferTd = document.createElement('td');
+        transferTd.className = 'update-quantity';
+
+        const transferInput = document.createElement('input');
+        transferInput.type = 'number';
+        transferInput.min = '1';
+        transferInput.placeholder = 'Qty';
+        transferInput.setAttribute('aria-label', `Quantity to transfer from godown to main store for product ${product.name} (${product.sku})`);
+
+        const transferButton = document.createElement('button');
+        transferButton.textContent = 'Transfer';
+        transferButton.title = `Transfer quantity from godown to main store for product ${product.name}`;
+        transferButton.type = 'button';
+        transferButton.className = 'primary';
+
+        transferTd.appendChild(transferInput);
+        transferTd.appendChild(transferButton);
+        tr.appendChild(transferTd);
+
+        // Actions: Delete button
+        const actionsTd = document.createElement('td');
+        actionsTd.className = 'actions';
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.title = `Delete product ${product.name}`;
+        deleteBtn.setAttribute('aria-label', `Delete product ${product.name}`);
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'secondary';
+        actionsTd.appendChild(deleteBtn);
+        tr.appendChild(actionsTd);
+
+        // Event listeners
+        transferButton.addEventListener('click', () => {
+          const qtyToTransfer = parseInt(transferInput.value, 10);
+          if (isNaN(qtyToTransfer) || qtyToTransfer <= 0) {
+            alert('Enter a positive number to transfer.');
+            transferInput.focus();
+            return;
+          }
+          if (qtyToTransfer > product.godownQty) {
+            alert(`Cannot transfer more than godown quantity (${product.godownQty}).`);
+            transferInput.focus();
+            return;
+          }
+          product.godownQty -= qtyToTransfer;
+          product.mainStoreQty += qtyToTransfer;
+          saveProducts();
+          renderMainStoreTable(searchInput.value);
+          renderGodownStockTable(godownSearchInput.value);
+        });
+
+        deleteBtn.addEventListener('click', () => {
+          if (confirm(`Are you sure you want to delete product "${product.name}"?`)) {
+            products = products.filter(p => p.sku !== product.sku);
+            saveProducts();
+            renderMainStoreTable(searchInput.value);
+            renderGodownStockTable(godownSearchInput.value);
+          }
+        });
+
+        mainStoreTableBody.appendChild(tr);
+      });
+    }
+
+    // Update total main store inventory value
+    const totalVal = calculateTotalValue(filteredProducts, 'mainStoreQty');
+    mainStoreTotalValue.textContent = `Total Main Store Inventory Value: $${formatCurrency(totalVal)}`;
+  }
+
+  // Render Godown Stock page table filtered by search text
+  function renderGodownStockTable(filterText = '') {
+    godownStockTableBody.innerHTML = '';
+    const filterLower = filterText.toLowerCase();
+
+    const filteredProducts = products.filter(p =>
+      p.name.toLowerCase().includes(filterLower) ||
+      p.sku.toLowerCase().includes(filterLower)
+    );
+
+    if (filteredProducts.length === 0) {
+      const emptyRow = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 5;
+      td.style.textAlign = 'center';
+      td.textContent = 'No products found.';
+      emptyRow.appendChild(td);
+      godownStockTableBody.appendChild(emptyRow);
+    } else {
+      filteredProducts.forEach(product => {
+        const tr = document.createElement('tr');
+
+        // Name
+        const nameTd = document.createElement('td');
+        nameTd.textContent = product.name;
+        tr.appendChild(nameTd);
+
+        // SKU
+        const skuTd = document.createElement('td');
+        skuTd.textContent = product.sku;
+        tr.appendChild(skuTd);
+
+        // Godown Qty
+        const godownQtyTd = document.createElement('td');
+        godownQtyTd.textContent = product.godownQty;
+        tr.appendChild(godownQtyTd);
+
+        // Price
+        const priceTd = document.createElement('td');
+        priceTd.textContent = formatCurrency(product.price);
+        tr.appendChild(priceTd);
+
+        // Total Value = godownQty * price
+        const totalValTd = document.createElement('td');
+        totalValTd.textContent = formatCurrency(product.godownQty * product.price);
+        tr.appendChild(totalValTd);
+
+        godownStockTableBody.appendChild(tr);
+      });
+    }
+
+    // Update total godown inventory value
+    const totalVal = calculateTotalValue(filteredProducts, 'godownQty');
+    godownTotalValue.textContent = `Total Godown Inventory Value: $${formatCurrency(totalVal)}`;
+  }
+
+  // Add or update product on form submit
+  function addOrUpdateProduct(e) {
+    e.preventDefault();
+    const name = productNameInput.value.trim();
+    const sku = productSKUInput.value.trim();
+    const godownQty = parseInt(productGodownQuantityInput.value, 10);
+    const price = parseFloat(productPriceInput.value);
+
+    if (!name || !sku || isNaN(godownQty) || isNaN(price) || godownQty < 0 || price < 0) {
+      alert('Please enter valid product details.');
+      return;
+    }
+
+    // Check if product exists by SKU (case insensitive)
+    const existingIndex = products.findIndex(p => p.sku.toLowerCase() === sku.toLowerCase());
+    if (existingIndex !== -1) {
+      // Update existing product's name, price, and godownQty only
+      products[existingIndex].name = name;
+      // Adjust godownQty to the new input value (overwrite)
+      products[existingIndex].godownQty = godownQty;
+      products[existingIndex].price = price;
+      // Keep mainStoreQty unchanged
+      alert(`Product with SKU "${sku}" updated.`);
+    } else {
+      // Add new product
+      products.push({
+        name,
+        sku,
+        price,
+        godownQty,
+        mainStoreQty: 0
+      });
+      alert(`Product "${name}" added.`);
+    }
+
+    saveProducts();
+    renderMainStoreTable(searchInput.value);
+    renderGodownStockTable(godownSearchInput.value);
+    productForm.reset();
+    productNameInput.focus();
+  }
+
+  // Search input handlers for both pages
+  function onMainSearchInput() {
+    renderMainStoreTable(searchInput.value.trim());
+  }
+  function onGodownSearchInput() {
+    renderGodownStockTable(godownSearchInput.value.trim());
+  }
+
+  function init() {
+    loadProducts();
+    renderMainStoreTable();
+    renderGodownStockTable();
+
+    productForm.addEventListener('submit', addOrUpdateProduct);
+    searchInput.addEventListener('input', onMainSearchInput);
+    godownSearchInput.addEventListener('input', onGodownSearchInput);
+  }
+
+  init();
+
+</script>
+</body>
+</html>
+

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Main Store Stock Manager</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Main Store Stock Manager</h1>
+        <input type="text" id="search" placeholder="Search by item name or SKU" oninput="filterItems()" />
+        <table id="main-store-table">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>Price per Pic</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="main-store-body"></tbody>
+        </table>
+        <button onclick="addItem()">Add Item</button>
+        <button onclick="transferToGodown()">Transfer to Godown</button>
+        <button onclick="location.href='index.html'">Back to Dashboard</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
